@@ -1,0 +1,72 @@
+{
+  "tables": [
+    {
+      "table_name": "hospitals",
+      "description": "Hospitals where patients are treated",
+      "primary_key": "hospital_id",
+      "columns": [
+        { "name": "hospital_id", "description": "Unique hospital identifier" },
+        { "name": "hospital_name", "description": "Name of the hospital" },
+        { "name": "city", "description": "City of the hospital" },
+        { "name": "state", "description": "State of the hospital" }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "table_name": "patients",
+      "description": "Patients registered in hospitals",
+      "primary_key": "patient_id",
+      "columns": [
+        { "name": "patient_id", "description": "Unique patient identifier" },
+        { "name": "patient_name", "description": "Patient name" },
+        { "name": "age", "description": "Patient age" },
+        { "name": "gender", "description": "Patient gender" },
+        { "name": "hospital_id", "description": "Hospital of the patient" }
+      ],
+      "foreign_keys": [
+        {
+          "column": "hospital_id",
+          "references": { "table": "hospitals", "column": "hospital_id" }
+        }
+      ]
+    },
+    {
+      "table_name": "vaccinations",
+      "description": "Vaccination records of patients",
+      "primary_key": "vaccination_id",
+      "columns": [
+        { "name": "vaccination_id", "description": "Vaccination record ID" },
+        { "name": "patient_id", "description": "Patient vaccinated" },
+        { "name": "vaccine_name", "description": "Vaccine administered" },
+        { "name": "vaccination_date", "description": "Date of vaccination" },
+        { "name": "dose_number", "description": "Dose number" }
+      ],
+      "foreign_keys": [
+        {
+          "column": "patient_id",
+          "references": { "table": "patients", "column": "patient_id" }
+        }
+      ]
+    },
+    {
+      "table_name": "medications",
+      "description": "Medications prescribed to patients",
+      "primary_key": "medication_id",
+      "columns": [
+        { "name": "medication_id", "description": "Medication record ID" },
+        { "name": "patient_id", "description": "Patient taking medication" },
+        { "name": "medicine_name", "description": "Medicine name" },
+        { "name": "dosage", "description": "Dosage details" },
+        { "name": "start_date", "description": "Medication start date" },
+        { "name": "end_date", "description": "Medication end date" }
+      ],
+      "foreign_keys": [
+        {
+          "column": "patient_id",
+          "references": { "table": "patients", "column": "patient_id" }
+        }
+      ]
+    }
+  ]
+}
+
