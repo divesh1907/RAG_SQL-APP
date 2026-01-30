@@ -13,3 +13,6 @@ embeddings/chroma_store/
 
 # macOS junk
 .DS_Store
+
+# Ignore config with secrets
+src/config.py
