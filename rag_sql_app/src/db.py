@@ -9,5 +9,3 @@ def run_sql(query: str):
     cur.close()
     conn.close()
     return result
-
-
