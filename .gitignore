@@ -15,4 +15,5 @@ embeddings/chroma_store/
 .DS_Store
 
 # Ignore config with secrets
-src/config.py
+rag_sql_app/src/config.py
+
