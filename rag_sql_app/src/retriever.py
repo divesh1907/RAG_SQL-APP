@@ -1,18 +1,15 @@
-def retrieve_schema(collection, query, k=4):
-    """
-    Returns a set of relevant tables and columns
-    based on semantic similarity.
-    """
-    result = collection.query(
-        query_texts=[query],
-        n_results=k
+def retrieve_schema(collection, queries, top_k=5):
+    results = collection.query(
+        query_texts=queries,
+        n_results=top_k
     )
 
     tables = set()
     columns = set()
 
-    for meta in result["metadatas"][0]:
-        tables.add(meta["table"])
-        columns.add(meta["column"])
+    for meta_list in results.get("metadatas", []):
+        for meta in meta_list or []:
+            tables.add(meta["table"])
+            columns.add(f"{meta['table']}.{meta['column']}")
 
     return list(tables), list(columns)

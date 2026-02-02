@@ -1,20 +1,19 @@
-from config import client
+from .config import client
 
-def generate_answer(sql_result, user_query):
+
+def generate_answer(question, sql, result):
     prompt = f"""
-User question:
-{user_query}
+Question: {question}
+SQL: {sql}
+Result: {result}
 
-SQL result:
-{sql_result}
-
-Explain the answer clearly in natural language.
+Explain the result clearly.
 """
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.2
+        temperature=0.3
     )
 
     return response.choices[0].message.content.strip()
