@@ -1,54 +1,31 @@
-import json
-import os
+import threading
 import chromadb
-from chromadb.config import Settings
+from chromadb.utils import embedding_functions
+from .config import settings
 
+_lock = threading.Lock()
 _collection = None
 
 
-def create_embeddings():
+def get_collection():
     global _collection
     if _collection is not None:
         return _collection
 
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    DATA_PATH = os.path.join(BASE_DIR, "data", "health_code.json")
-    CHROMA_PATH = os.path.join(BASE_DIR, "embeddings", "chroma_store")
-
-    client = chromadb.Client(
-        Settings(
-            persist_directory=CHROMA_PATH,
-            anonymized_telemetry=False
-        )
-    )
-
-    collection = client.get_or_create_collection("schema_embeddings")
-
-    if collection.count() > 0:
-        _collection = collection
-        return collection
-
-    with open(DATA_PATH, "r") as f:
-        schema = json.load(f)
-
-    documents, metadatas, ids = [], [], []
-
-    for table in schema["tables"]:
-        for column in table["columns"]:
-            documents.append(
-                f"{table['table_name']} {column['name']} {column.get('description', '')}"
+    with _lock:
+        if _collection is None:
+            client = chromadb.Client(
+                chromadb.config.Settings(
+                    persist_directory=settings.CHROMA_PATH
+                )
             )
-            metadatas.append({
-                "table": table["table_name"],
-                "column": column["name"]
-            })
-            ids.append(f"{table['table_name']}::{column['name']}")
 
-    collection.add(
-        documents=documents,
-        metadatas=metadatas,
-        ids=ids
-    )
+            # ✅ LOCAL embedding function (NO OpenAI)
+            embedding_function = embedding_functions.DefaultEmbeddingFunction()
 
-    _collection = collection
-    return collection
+            _collection = client.get_or_create_collection(
+                name="schema_embeddings",
+                embedding_function=embedding_function
+            )
+
+    return _collection

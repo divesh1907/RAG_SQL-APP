@@ -1,27 +1,33 @@
 import psycopg2
+import sqlparse
 from psycopg2.extras import RealDictCursor
-from .config import POSTGRES_CONFIG
+from .config import settings
 
-
-FORBIDDEN_SQL = ["insert", "update", "delete", "drop", "alter", "truncate"]
-
-
-def validate_sql(sql: str):
-    sql_l = sql.lower().strip()
-    if not sql_l.startswith("select"):
-        raise ValueError("Only SELECT queries are allowed")
-    if any(word in sql_l for word in FORBIDDEN_SQL):
-        raise ValueError("Unsafe SQL detected")
+class UnsafeSQLError(Exception):
+    pass
 
 
 class PostgresAdapter:
     def __init__(self):
-        self.conn = psycopg2.connect(**POSTGRES_CONFIG)
-        self.conn.autocommit = True
+        self._conn = None
+
+    def _connect(self):
+        if self._conn is None:
+            self._conn = psycopg2.connect(settings.DATABASE_URL)
+
+    def _validate_sql(self, sql: str):
+        parsed = sqlparse.parse(sql)
+        if not parsed:
+            raise UnsafeSQLError("Empty SQL")
+
+        stmt = parsed[0]
+        if stmt.get_type() != "SELECT":
+            raise UnsafeSQLError("Only SELECT queries are allowed")
 
     def execute(self, sql: str):
-        validate_sql(sql)
-        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SET statement_timeout = 5000;")
+        self._validate_sql(sql)
+        self._connect()
+
+        with self._conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(sql)
             return cur.fetchall()

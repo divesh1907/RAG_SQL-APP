@@ -1,15 +1,26 @@
-import os
-from openai import OpenAI
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
+from pydantic import Field
 
-load_dotenv()
+class Settings(BaseSettings):
+    OPENAI_API_KEY: str
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    pg_host: str = Field(alias="pg_host")
+    pg_port: int = Field(alias="pg_port")
+    pg_db: str = Field(alias="pg_db")
+    pg_user: str = Field(alias="pg_user")
+    pg_password: str = Field(alias="pg_password")
 
-POSTGRES_CONFIG = {
-    "host": os.getenv("PG_HOST"),
-    "port": int(os.getenv("PG_PORT")),
-    "dbname": os.getenv("PG_DB"),
-    "user": os.getenv("PG_USER"),
-    "password": os.getenv("PG_PASSWORD"),
-}
+    CHROMA_PATH: str = "rag_sql_app/embeddings/chroma_store"
+
+    @property
+    def DATABASE_URL(self) -> str:
+        return (
+            f"postgresql://{self.pg_user}:{self.pg_password}"
+            f"@{self.pg_host}:{self.pg_port}/{self.pg_db}"
+        )
+
+    class Config:
+        env_file = ".env"
+        extra = "forbid"   # catches typos early
+
+settings = Settings()
